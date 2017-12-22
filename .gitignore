@@ -2,9 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.swp
 
 # C extensions
-*.so
+#*.so
 
 # Distribution / packaging
 .Python
@@ -86,6 +87,7 @@ celerybeat-schedule
 .venv
 venv/
 ENV/
+.nox
 
 # Spyder project settings
 .spyderproject
@@ -99,3 +101,12 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# gcloud stuff
+key.json
+
+# project config
+config.py
+
+# VIM tags
+tags
