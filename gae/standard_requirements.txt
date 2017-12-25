@@ -1,9 +1,6 @@
-flask
-six==1.10.0
-pyasn1
-pyasn1_modules
+flask==0.12
+werkzeug==0.12.2
 google-auth
 google-api-python-client
 google-auth-httplib2
-pyyaml
 WebTest

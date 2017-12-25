@@ -23,7 +23,6 @@
 
 cron:
 - description: daily create and delete tables for search report 
-  url: /run_job/build_tables/?url=/build_search_table&target=worker
-  target: worker 
+  url: /run_job/update_dashboard_tables/
+  target: phoenix-search 
   schedule: every day 07:00
-

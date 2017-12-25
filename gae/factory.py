@@ -21,14 +21,36 @@
 #SOFTWARE.
 
 
-service: phoenix-search
-runtime: python27
-api_version: 1
-threadsafe: true
+"""Factorizes scheduler to run in background."""
 
-handlers:
-- url: /.*/
-  script: main.app
 
-basic_scaling:
-  max_instances: 1
+from scheduler import SchedulerJob
+
+
+class JobsFactory(object):
+    """Builds the specified job for GAE."""
+    def factor_job(self, job_name):
+        """Selects one of the available jobs.
+
+        :type job_name: str
+        :param job_name: name of job to build.
+
+        :rtype: `SchedulerJob`
+        :returns: scheduler that receives a `URL` and a `target` parameter
+                  to run tasks in background.
+        """
+        job_setup = self.jobs_setup.get(job_name)
+        if not job_setup: 
+            raise TypeError("Please choose a valid job name.")
+        return SchedulerJob(url=job_setup['url'], target=job_setup['target'])
+
+    @property
+    def jobs_setup(self):
+        """Jobs and their setup to run in GAE.
+
+        :rtype: dict
+        :returns: dict where keys are jobs names and values are their
+                  description.    
+        """
+        return {'update_dashboard_tables': {'url': '/update_dashboard_tables',
+                   'target': 'worker'}}

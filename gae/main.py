@@ -25,8 +25,7 @@
 
 
 import utils
-from config import config
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from factory import JobsFactory
 import time
 
@@ -39,8 +38,13 @@ jobs_factory = JobsFactory()
 def run_job(job_name):
     """This method works as a central manager to choose which job to run
     and respective input parameters.
+
     :type job_name: str
     :param job_name: specifies which job to run.
     """
-    scheduler = jobs_factory.factor_job(job_name)()
-    return str(scheduler.run(request.args))
+    try:
+        scheduler = jobs_factory.factor_job(job_name)
+        scheduler.run(request.args)
+    except Exception as err:
+        print str(err)
+    return str(scheduler)

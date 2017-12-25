@@ -21,14 +21,9 @@
 #SOFTWARE.
 
 
-service: phoenix-search
-runtime: python27
-api_version: 1
-threadsafe: true
-
-handlers:
-- url: /.*/
-  script: main.app
-
-basic_scaling:
-  max_instances: 1
+try:
+    from bigquery import BigQueryService
+except ImportError:
+    # We do this so we don't have to install dependencies when using Flexible
+    # environment
+    pass
