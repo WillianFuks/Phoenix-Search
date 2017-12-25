@@ -21,30 +21,37 @@
 #SOFTWARE.
 
 
-"""Main module working as entry point for routing different jobs."""
+import json
+import unittest
+import mock
+import datetime
+import os
+import shutil
 
 
-import utils
-from flask import Flask, request
-from factory import JobsFactory
-import time
+class BaseTests(object):
+    config1_path = 'gae/config.py'
+    config2_path = 'gae/config2.py'
+    test_config = 'tests/unit/data/gae/test_config.json'
+    _recover_flg = False
+    _utils = None
+    def prepare_environ(self):
+        if os.path.isfile(self.config1_path):
+            shutil.copyfile(self.config1_path, self.config2_path)
+            self._recover_flg = True
+            os.remove(self.config1_path)
+        shutil.copyfile(self.test_config, self.config1_path)
 
-
-app = Flask(__name__)
-jobs_factory = JobsFactory()
-
-
-@app.route("/run_job/<job_name>/")
-def run_job(job_name):
-    """This method works as a central manager to choose which job to run
-    and respective input parameters.
-
-    :type job_name: str
-    :param job_name: specifies which job to run.
-    """
-    try:
-        scheduler = jobs_factory.factor_job(job_name)
-        scheduler.run(request.args)
-        return str(scheduler)
-    except Exception as err:
-        print str(err)
+    def clean_environ(self):
+        if self._recover_flg:
+            shutil.copyfile(self.config2_path, self.config1_path)
+            os.remove(self.config2_path)
+        else:
+            os.remove(self.config1_path)
+    
+    @property
+    def utils(self):
+        if not self._utils:
+            import gae.utils as utils
+            self._utils = utils
+        return self._utils

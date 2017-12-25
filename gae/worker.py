@@ -37,24 +37,21 @@ gcp_service = GCPService()
 @app.route("/update_dashboard_tables", methods=['POST'])
 def update_search_tables():
     """Creates a new table and deletes previous table if condition mets."""
-    try:
-        setup = config['jobs']['update_dashboard_tables'] 
-        date = (utils.yesterday_date().strftime("%Y%m%d") if
-                'date' not in request.form else
-                utils.process_url_date(request.form.get('date')))
+    setup = config['jobs']['update_dashboard_tables'] 
+    date = (utils.yesterday_date().strftime("%Y%m%d") if
+            'date' not in request.form else
+            utils.process_url_date(request.form.get('date')))
 
-        query_job_body = utils.search_query_job_body(**dict(setup.items() +
-            [('date', date)]))
+    query_job_body = utils.search_query_job_body(**dict(setup.items() +
+        [('date', date)]))
 
-        job = gcp_service.bigquery.execute_job(config['jobs'][
-            'update_dashboard_tables']['project_id'], query_job_body)
-        gcp_service.bigquery.poll_job(job)
-        
-        gcp_service.bigquery.delete_table(project_id=setup['dest_project_id'],
-            dataset_id=setup['dest_dataset_id'],
-            table_id=setup['dest_table_id'].format((datetime.now() - 
-                timedelta(days=1 + setup['total_days'])).strftime("%Y%m%d")))
+    job = gcp_service.bigquery.execute_job(setup['project_id'],
+        query_job_body)
+    gcp_service.bigquery.poll_job(job)
 
-    except Exception as err:
-           print str(err) 
+    gcp_service.bigquery.delete_table(project_id=setup['dest_project_id'],
+        dataset_id=setup['dest_dataset_id'],
+        table_id=setup['dest_table_id'].format((datetime.now() - 
+            timedelta(days=1 + setup['total_days'])).strftime("%Y%m%d")))
+
     return "finished"

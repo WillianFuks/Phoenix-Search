@@ -21,30 +21,27 @@
 #SOFTWARE.
 
 
-"""Main module working as entry point for routing different jobs."""
+import sys
+import os
+import mock
+import unittest
 
 
-import utils
-from flask import Flask, request
-from factory import JobsFactory
-import time
+class TestJobsFactory(unittest.TestCase):
+    @staticmethod
+    def _get_target_klass(): 
+        from factory import JobsFactory
 
 
-app = Flask(__name__)
-jobs_factory = JobsFactory()
+        return JobsFactory
 
 
-@app.route("/run_job/<job_name>/")
-def run_job(job_name):
-    """This method works as a central manager to choose which job to run
-    and respective input parameters.
+    def test_factor_job(self):
+        klass = self._get_target_klass()()
+        with self.assertRaises(TypeError):
+            klass.factor_job('invalid_name') 
 
-    :type job_name: str
-    :param job_name: specifies which job to run.
-    """
-    try:
-        scheduler = jobs_factory.factor_job(job_name)
-        scheduler.run(request.args)
-        return str(scheduler)
-    except Exception as err:
-        print str(err)
+        scheduler = klass.factor_job('update_dashboard_tables') 
+        self.assertEqual(type(scheduler).__name__, 'SchedulerJob')
+        self.assertEqual(scheduler.url, '/update_dashboard_tables')
+        self.assertEqual(scheduler.target, 'worker')

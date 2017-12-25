@@ -1,0 +1,15 @@
+config = {"jobs":{
+              "update_dashboard_tables": {
+                  "table_id": Which table to read data from,
+                  "dataset_id": Dataset Id from where to read from,
+                  "project_id": Project Id where data is located,
+                  "query_path": Path to sql query to run, something like "queries/path/to/query.sql",
+                  "dest_table_id": where to save results, such as "search_{}". The script formats the {} to the correspondent date string,
+                  "dest_dataset_id": where to save results,
+                  "dest_project_id": project where results will be saved,
+                  "hostname": this is a parameter in our query, it specifies what hostname is allowed in our ga data,
+                  "geonetworklocation": we use this so we can filter out everybody who belongs to a certain Network ISP,
+                  "total_days": how many days are allowed to exist in BQ. More than that and we delete. This number is an integer.
+              }
+           }
+          }

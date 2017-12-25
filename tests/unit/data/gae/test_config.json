@@ -1,0 +1,15 @@
+{"jobs":{
+     "update_dashboard_tables": {
+         "table_id": "table_id",
+         "dataset_id": "dataset_id",
+         "project_id": "project123",
+         "query_path": "tests/unit/data/gae/test_search.sql",
+         "dest_table_id": "search_{}",
+         "dest_dataset_id": "dest_dataset",
+         "dest_project_id": "dest_project",
+         "hostname": "hostname",
+         "geonetworklocation": "geo_location",
+         "total_days": 1
+     }
+  }
+}
