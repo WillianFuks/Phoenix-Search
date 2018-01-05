@@ -28,7 +28,7 @@ import nox
 
 def session_unit_gae(session):
     """This session tests only the tests associated to google AppEngine
-    folder. To run it, type `nox --session gae`
+    folder. To run it, type `nox --session unit_gae`
     """
     session.interpreter = 'python2.7'
     session.virtualenv_dirname = 'unit-gae'
@@ -53,3 +53,21 @@ def session_unit_gae(session):
         '--cov=.',
         '--cov-report=html')
 
+
+def session_unit_feeds(session):
+    """This session tests only the tests associated to the feeds jobs 
+    folder. To run it, type `nox -s unit_feeds`
+    """
+    session.interpreter = 'python3.6'
+    session.virtualenv_dirname = 'unit-feeds'
+
+    #session.install('-r', 'tests/unit/data/gae/test_requirements.txt')
+    session.install('pytest', 'pytest-cov', 'mock')
+
+    session.env = {'PYTHONPATH': './'}
+
+    session.run(
+        'py.test',
+        'tests/unit/feeds/connectors/test_solr.py',
+        '--cov=.',
+        '--cov-report=html')
