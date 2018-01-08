@@ -35,14 +35,16 @@ class TestSolrConnector(unittest.TestCase):
 
     @staticmethod
     def _mock_config():
-        return {"solr": {
-                    "thestore": {
-                        "host": "hostname/"
+        return {'solr': {
+                    'thestore': {
+                        'host': 'hostname/'
                         }
                     }
                 }
 
     def test_ctr(self):
-        klass = self._get_target_klass()(self._mock_config(), 'thestore')
-        expected = "hostname/select?q={}&wt=json"
+        klass = self._get_target_klass()(
+            self._mock_config()['solr']['thestore'])
+        expected = ("hostname/select?q={solr_query}&start={start}"
+                    "&rows={rows}&wt=json")
         self.assertEqual(klass.select_url, expected)

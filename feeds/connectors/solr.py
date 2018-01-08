@@ -28,9 +28,6 @@ should be in the file "config.py"""
 class SolrConnector(object):
     """Class responsible for running queries against Solr.
 
-    :type store: str
-    :param store: which store from where get settings. Defaults to 'dafiti'.
-
     :type config: dict
     :param config: general setup for Solr connection.
 
@@ -38,35 +35,30 @@ class SolrConnector(object):
       :param config.host: hostname where Solr is hosted. This is where we
                           issue our requests to.
     """
-    def __init__(self, config, store='dafiti'):
-        self.select_url = self._build_query_url(config, store) 
+    def __init__(self, config):
+        self._config = config 
 
-    @staticmethod
-    def _build_query_url(config, store):
+    @property
+    def select_url(self):
         """Builds the URL to issue ``select`` statements against Solr.
-
-        :type store: str
-        :param store: which store from where to run queries from.
-
-        :type config: dict
-        :param config: setup to config Solr Connector.
 
         :rtype: url
         :returns: URL to run select queries against Solr.
         """
-        return ''.join([config['solr'][store]['host'], 'select?q={}&wt=json'])
+        return ''.join([self._config['host'],
+            'select?q={solr_query}&start={start}&rows={rows}&wt=json'])
 
-    def get_total_docs(self, select_statement):
-        """Returns the total amount of docs available for a given query.
+    async def query(self, query, session):
+        """Runs asynchronously a query against Solr.
 
-        :type select_statement: str
-        :param select_statement: select to run against Solr. It can be
-                                 something like "*:*" where all docs are
-                                 selected or have some other operation
-                                 such as '*:*&fq=brand:brandX'. 
+        :type query: str
+        :param query: query to run against Solr.
+    
+        :type session: `aiohttp.ClientSession`
+        :param session: Client Session to run requests asynchronously.
 
-        :rtype: int
-        :returns: total docs in result 
+        :rtype: binary
+        :return: Solr response already encoded as UTF-8.
         """
-        
-
+        async with session.get(query) as resp:
+            return await resp.read()
