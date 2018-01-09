@@ -27,10 +27,12 @@
 import json
 import math
 import sys
+import os
 sys.path.append('../..')
 
 import asyncio
 import aiohttp
+import aiofiles
 from feeds.connectors.solr import SolrConnector
 from feeds.config import config
 
@@ -45,10 +47,11 @@ async def run(store, rows):
             rows=0)
         total_docs = await get_total_docs(session, query, solr_conn)
         tasks = []
-        for i in range(math.floor(2000 / rows) + 1):
-             tasks.append(asyncio.ensure_future(
-                         get_docs(session, solr_conn, i * rows, rows)))
-        return await asyncio.gather(*tasks)
+        red_query = await read_red_sql(config['redshift']['skus_query_path'])
+        #for i in range(math.floor(2000 / rows) + 1):
+        #     tasks.append(asyncio.ensure_future(
+        #                 get_docs(session, solr_conn, i * rows, rows)))
+        #return await asyncio.gather(*tasks)
 
 
 async def get_total_docs(session, query, solr_conn):
@@ -99,6 +102,21 @@ async def get_docs(session, solr_conn, start, rows):
         'response', {}).get('docs', [])
 
 
+async def read_red_sql(path):
+    """Reads SQL from a file. It does so asynchronously so we can already issue
+    other concurrent operations that does not require the SQL data in order to
+    execute.
+
+    :type path: str
+    :param path: path from where to read SQL file.
+
+    :rtype: str
+    :returns: SQL query to run against RedShift.
+    """
+    async with aiofiles.open(path) as f:
+        return await f.read()
+
+ 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     r = loop.run_until_complete(run('dafiti', 1000))    
