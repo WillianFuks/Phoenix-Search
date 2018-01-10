@@ -6,7 +6,10 @@ INSERT INTO allowed_skus_{indx} VALUES {skus_list};
 
 SELECT
   product_name AS title,
-  CONCAT('https://dafitistatic-a.akamaihd.net/p/', CONCAT(CONCAT(REPLACE(product_name, ' ', '-'), '-'), CONCAT(REVERSE(src_bob_fk_catalog_config), '-{image_id}-zoom.jpg'))) img_template,
+  CONCAT('https://dafitistatic-a.akamaihd.net/p/', CONCAT(CONCAT(REPLACE(product_name, ' ', '-'), '-'), CONCAT(REVERSE(src_bob_fk_catalog_config), '-1-zoom.jpg'))) img_template_1,
+  CONCAT('https://dafitistatic-a.akamaihd.net/p/', CONCAT(CONCAT(REPLACE(product_name, ' ', '-'), '-'), CONCAT(REVERSE(src_bob_fk_catalog_config), '-2-zoom.jpg'))) img_template_2,
+  CONCAT('https://dafitistatic-a.akamaihd.net/p/', CONCAT(CONCAT(REPLACE(product_name, ' ', '-'), '-'), CONCAT(REVERSE(src_bob_fk_catalog_config), '-3-zoom.jpg'))) img_template_3,
+  CONCAT('https://dafitistatic-a.akamaihd.net/p/', CONCAT(CONCAT(REPLACE(product_name, ' ', '-'), '-'), CONCAT(REVERSE(src_bob_fk_catalog_config), '-4-zoom.jpg'))) img_template_4,
   product_url,
   COALESCE(stock.quantity, 0) AS stock_count,
   COALESCE(seller.company_name, 'GFG') AS owner
@@ -19,5 +22,3 @@ LEFT JOIN raw_solr_memcached.raw_stock AS stock
   ON prods.sku_config = stock.sku_config
 WHERE TRUE
   AND prods.fk_company = {fk_company};
-
-DROP TABLE allowed_skus_{indx}
