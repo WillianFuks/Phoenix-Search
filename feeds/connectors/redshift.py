@@ -52,7 +52,6 @@ class RedshiftConnector(object):
     def __init__(self, **kwargs):
         self._con_kwargs = kwargs
         self._con = None
-        self._cur = None 
 
     def query(self, query):
         """Runs `query` against RedShift.
@@ -60,30 +59,30 @@ class RedshiftConnector(object):
         :type query: str
         :param query: query to run.
 
-        :rtype: list of tuples
-        :returns: list  with results from Redshift operation.
+        :rtype: list of dicts 
+        :returns: list  with results from Redshift operation where each key
+                  is a name of a column in result set and value is
+                  correspondent value. Returns empyt list if result set is
+                  empty.
         """
-        print('received query: ', query)
-        with self.con() as con:
-            with con.cursor() as c:
-                c.execute(query)
-                return c.fetchall() if c.arraysize else [()] 
+        with self.cursor() as c:
+            c.execute(query)
+            return [dict(zip([e.name for e in c.description], row)) for row in 
+                    c.fetchall()]  if c.arraysize else []
 
     @contextlib.contextmanager
     def con(self):
         if not self._con:
             self._con = psycopg2.connect(**self._con_kwargs)
         yield self
-        #self._con.close()
-        #self._con = None
+        self._con.close()
+        self._con = None
         
     @contextlib.contextmanager
     def cursor(self):
         if not self._con:
             raise ValueError(
                 'Please first initiate the connection to Redshift.')
-        if not self._cur:
-            self._cur = self._con.cursor() 
-        yield self._cur
-        #self._cur.close()
-        #self._cur = None
+        cur = self._con.cursor()        
+        yield cur 
+        cur.close()
