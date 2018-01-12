@@ -28,12 +28,15 @@ import json
 import math
 import sys
 import os
-from concurrent.futures import ThreadPoolExecutor
 import asyncio
+from io import StringIO
+from concurrent.futures import ThreadPoolExecutor
+from operator import itemgetter
 sys.path.append('../..')
 
 import aiohttp
 import aiofiles
+import google.cloud.bigquery as bq
 from feeds.connectors.solr import SolrConnector
 from feeds.connectors.redshift import RedshiftConnector
 from feeds.config import config
@@ -48,20 +51,58 @@ async def run(store, rows, max_threads=100):
         rows=0)
     red_query = await read_file(config['redshift']['skus_query_path'])
     sem = asyncio.Semaphore(max_threads)
-
+    bq_con = bq.Client.from_service_account_json(config['bigquery']['json_path'])
     with ThreadPoolExecutor(max_workers=max_threads) as executor:
         async with aiohttp.ClientSession() as sess:
             total_solr_docs = await get_total_solr_docs(sess, solr_docs_query,
                 solr_con)
             with red.con() as red_con:
-                for i in range(math.floor(1 / rows) + 1):
+                for i in range(math.floor(0 / rows) + 1):
                     solr_query = build_solr_query(solr_con, i * rows, rows)
                     tasks.append(asyncio.ensure_future(
                         get_docs(sem, executor, sess, solr_con, red_con,
                             solr_query, red_query, i * rows, rows,
                             **config['redshift'][store])))
-                return [row for e in await asyncio.gather(*tasks) for
-                             row in e]
+                #return [row for e in await asyncio.gather(*tasks) for
+                #        row in e]
+
+                return export_data_bq(bq_con,
+                     ''.join([row for e in await asyncio.gather(*tasks) for
+                         row in e]),
+                     **config['bigquery'])
+
+
+def export_data_bq(bq_con, data, **kwargs):
+    """Gets resulting data from Solr and Redshift and uploads to a specified
+    table in BigQuery.
+
+    :type bq_con: `google.cloud.bigquery.Client()`
+    :param bq_con: client used to interact with BigQuery API.
+
+    :type data: list
+    :param data: list with strings from result of merging Solr with Redshift
+                 data.
+
+    :param kwargs:
+      :type table: str
+      :param table: table name where to upload the data.
+
+      :type dataset: str
+      :param dataset: dataset where table is located.
+    """
+    with open('test.csv', 'w') as f:
+        f.write(data)
+    from google.cloud.bigquery import LoadJobConfig
+    print(data)
+    ds_ref = bq_con.dataset(kwargs['dataset'])
+    ds = bq_con.get_dataset(ds_ref)
+    table = ds.table(kwargs['table'])
+    conf = LoadJobConfig()
+    conf.write_disposition = 'WRITE_TRUNCATE'
+    conf.autodetect = True
+    conf.source_format = 'NEWLINE_DELIMITED_JSON'
+    return bq_con.load_table_from_file(StringIO(data), table,
+               job_config=conf).result()
 
 
 def build_solr_query(solr_con, start, rows):
@@ -147,8 +188,7 @@ async def get_docs(sem, executor, session, solr_con, red_con, solr_query,
         red_data = {row['sku']: row for e in await asyncio.gather(
             loop.run_in_executor(executor, red_con.query, temp_red_query)) for
             row in e}
-        return [str({**doc, **red_data[doc['sku']]}) + '\n'
-                   for doc in solr_docs]
+        return [str({**doc, **red_data[doc['sku']]}) + '\n' for doc in solr_docs]
 
 def build_final_data(data):
     """Gets resulting data from merging of Solr and Redshift and transform
@@ -197,5 +237,5 @@ async def read_file(path):
  
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    r = loop.run_until_complete(run('dafiti', 1))
+    r = loop.run_until_complete(run('dafiti', 5))
     print(r)
