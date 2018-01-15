@@ -62,12 +62,13 @@ def session_unit_feeds(session):
     session.virtualenv_dirname = 'unit-feeds'
 
     #session.install('-r', 'tests/unit/data/gae/test_requirements.txt')
-    session.install('pytest', 'pytest-cov', 'mock')
+    session.install('-r', 'feeds/requirements.txt')
+    session.install('pytest', 'pytest-cov', 'mock', 'pytest-asyncio')
 
     session.env = {'PYTHONPATH': './'}
 
     session.run(
         'py.test',
-        'tests/unit/feeds/connectors/test_solr.py',
+        'tests/unit/feeds/bin/test_build_stock_feed.py',
         '--cov=.',
         '--cov-report=html')

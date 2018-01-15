@@ -1,0 +1,5 @@
+aiohttp
+aiofiles
+google-cloud-bigquery
+google-cloud-storage
+psycopg2

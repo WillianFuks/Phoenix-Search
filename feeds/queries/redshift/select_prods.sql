@@ -22,4 +22,3 @@ LEFT JOIN raw_bob_dafiti_br.seller AS seller
 LEFT JOIN (SELECT sku_config, SUM(quantity) quantity FROM raw_solr_memcached.raw_stock GROUP BY 1) AS stock
   ON prods.sku_config = stock.sku_config
 WHERE TRUE
-  AND prods.fk_company = {fk_company};
